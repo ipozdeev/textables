@@ -1,4 +1,6 @@
 import pandas as pd
+pd.set_option("display.max_colwidth", 100)
+
 import numpy as np
 import re
 
@@ -104,7 +106,7 @@ class TexTable:
                 axis = 0
             else:
                 axis = 1
-            tbl_new = pd.concat((tbl_new.table_fmt,
+            tbl_new = pd.concat((tbl_new,
                                  good_of_fit.applymap(fmt_coef.format)),
                                 axis=axis)
 
@@ -189,7 +191,9 @@ class TexTable:
         return res
 
     def to_tabular(self, **kwargs):
-        """
+        """Format table for tabular environment.
+
+        Keyword arguments of `pandas.to_latex` are preserved.
 
         Parameters
         ----------
@@ -197,34 +201,65 @@ class TexTable:
 
         Returns
         -------
-
-        """
-        self.table_fmt.to_latex(**kwargs)
-
-        return
-
-    def to_tabularx(self, x_column=0, **kwargs):
-        """
-
-        Parameters
-        ----------
-        kwargs
-
-        Returns
-        -------
+        res : str or None
 
         """
         # pop buf is it exists in `kwargs` to avoid duplicates in .to_latex()
         buf_old = kwargs.pop("buf", None)
 
-        # # change a specific column to 'X'
-        # column_format = self._column_format
+        tex_tbl_str = self.table_fmt.to_latex(**kwargs)
+
+        # now, stick to the actually provided `buf`
+        if buf_old is not None:
+            # mimic the case when `buf` was something rather than None
+            with open(buf_old, mode='w') as fname:
+                fname.write(tex_tbl_str)
+        else:
+            # mimic the case of `buf`=None - just return the string
+            return tex_tbl_str
+
+        return
+
+    def to_tabularx(self, textwidth=1.0, x_column_loc=0, **kwargs):
+        """Format table for tabularx environment.
+
+        The environment is distinguished by having 'tabularx' instead of
+        'tabular' in \begin and \end and the setting \textwidth right after
+        \begin. Keyword arguments of `pandas.to_latex` are preserved.
+
+        Parameters
+        ----------
+        textwidth : float
+            \textwidth argument to tabularx environment
+        kwargs
+
+        Returns
+        -------
+        res : str or None
+
+        """
+        # pop buf is it exists in `kwargs` to avoid duplicates in .to_latex()
+        buf_old = kwargs.pop("buf", None)
+
+        # change a specific column to 'X'
+        # if column_format is part of `kwargs`, use it and substitute the X
+        #   column, else construct a new column_format from right-ragged
+        #   columns and the X-column placed in front
+        column_format = kwargs.pop("column_format",
+                                   'l'*(self.table_fmt.index.nlevels +
+                                        self.table_fmt.shape[1]))
+        column_format = column_format[:x_column_loc] + 'X' + \
+            column_format[x_column_loc:][1:]
+        kwargs.update({"column_format": column_format})
 
         # move table to string to replace stuff
         tex_tbl_str = self.table_fmt.to_latex(buf=None, **kwargs)
 
         # replace with tabularx isntead of tabular
-        tex_tbl_str = re.sub('begin{tabular}', 'begin{tabularx}', tex_tbl_str)
+        tex_tbl_str = re.sub(
+            'begin{tabular}',
+            'begin{tabularx}{%s\\\\textwidth}' % (textwidth),
+            tex_tbl_str)
         tex_tbl_str = re.sub('end{tabular}', 'end{tabularx}', tex_tbl_str)
 
         # now, stick to the actually provided `buf`
