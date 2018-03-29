@@ -65,10 +65,12 @@ class TestTables(unittest.TestCase):
         self.assertTrue(re.search("begin{tabularx}{1.0\\\\textwidth}",
                                   tbl_str))
 
-    def test_from_model_fit(self):
+    def test_intertwine(self):
         """Test nrows = 2*nrows of df_coef, tstats in parentheses."""
-        tbl = TexTable.from_model_fit(self.df_coef, self.df_tstat,
-                                      fmt_inference="({:3.2f})")
+        tbl_1 = TexTable(self.df_coef, fmt="{:3.2f}")
+        tbl_2 = TexTable(self.df_tstat, fmt="({:3.2f})")
+
+        tbl = tbl_1.intertwine(tbl_2)
 
         self.assertEqual(tbl.table_fmt.shape[0], self.df_coef.shape[0] * 2)
         self.assertEqual(tbl.table_fmt.iloc[3, 0][0], '(')
