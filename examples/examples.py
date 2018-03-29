@@ -26,7 +26,8 @@ def example_one():
     tbl = tex.concat((tbl_coef.intertwine(tbl_ts), tbl_r2), axis=0)
 
     tbl.with_dcolumn().to_tabularx(textwidth=0.75, x_column_loc=0,
-                                   buf="temp.tex")
+                                   buf="temp.tex", column_format="XWW")
+
 
 if __name__ == "__main__":
     example_one()
