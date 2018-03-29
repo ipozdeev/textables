@@ -4,7 +4,6 @@ import numpy as np
 import re
 import os
 
-
 from textables.tables import TexTable
 
 
