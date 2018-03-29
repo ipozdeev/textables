@@ -1,10 +1,10 @@
 import pandas as pd
-pd.set_option("display.max_colwidth", 100)
-
 import numpy as np
 import re
 
 from textables.functions import deem_empty
+
+pd.set_option("display.max_colwidth", 100)
 
 
 class TexTable:
@@ -112,8 +112,15 @@ class TexTable:
 
         return cls(table=tbl_new, fmt="{}")
 
-    def with_dcolumn(self, delim='.', delim_index=None):
+    def with_dcolumn(self, delim='.', delim_index=False):
         """
+
+        Parameters
+        ----------
+        delim : str
+            delimiting character
+        delim_index : bool
+            True for delimiting the index as well
 
         Returns
         -------
@@ -146,7 +153,7 @@ class TexTable:
         tbl.columns = mask_not_delimited(tbl.columns)
 
         # if the index is delimited too, need to extract it as a column
-        if delim_index:
+        if not delim_index:
             tbl.index = mask_not_delimited(tbl.index)
 
         # mask cells with no delimiters
@@ -207,6 +214,7 @@ class TexTable:
         # pop buf is it exists in `kwargs` to avoid duplicates in .to_latex()
         buf_old = kwargs.pop("buf", None)
 
+        kwargs.update({"escape": False})
         tex_tbl_str = self.table_fmt.to_latex(**kwargs)
 
         # now, stick to the actually provided `buf`
@@ -251,6 +259,7 @@ class TexTable:
         column_format = column_format[:x_column_loc] + 'X' + \
             column_format[x_column_loc:][1:]
         kwargs.update({"column_format": column_format})
+        kwargs.update({"escape": False})
 
         # move table to string to replace stuff
         tex_tbl_str = self.table_fmt.to_latex(buf=None, **kwargs)
