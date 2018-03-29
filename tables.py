@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import re
 
-from textables.functions import deem_empty
+from textables.functions import deem_empty, to_diagonal
 
 pd.set_option("display.max_colwidth", 100)
 
@@ -36,6 +36,16 @@ class TexTable:
 
         self.mask_empty = mask_empty
         self.table_fmt = tbl
+
+    def __str__(self):
+        """
+        """
+        return self.table_fmt.__str__()
+
+    def __repr__(self):
+        """
+        """
+        return self.table_fmt.__repr__()
 
     def intertwine(self, other):
         """Zip table rows with rows of another table.
@@ -73,44 +83,6 @@ class TexTable:
     def T(self):
         """Transpose table."""
         return TexTable(self.table_fmt.T, fmt="{}")
-
-    @classmethod
-    def from_model_fit(cls, coef, inference, good_of_fit=None, fmt_coef="{}",
-                       fmt_inference="{}", orient_exog="columns"):
-        """
-
-        Parameters
-        ----------
-        coef : pandas.DataFrame
-        inference : pandas.DataFrame
-        good_of_fit : pandas.DataFrame or pandas.Series
-        fmt_coef : str
-            valid format string
-        fmt_inference : str
-            valid format string
-
-        Returns
-        -------
-
-        """
-        # init two tables
-        tbl_coef = TexTable(table=coef, fmt=fmt_coef)
-        tbl_infr = TexTable(table=inference, fmt=fmt_inference)
-
-        # intertwine
-        tbl_new = tbl_coef.intertwine(tbl_infr).table_fmt
-
-        # add a (bottom) row for a measure of the goodness of fit
-        if good_of_fit is not None:
-            if orient_exog == "columns":
-                axis = 0
-            else:
-                axis = 1
-            tbl_new = pd.concat((tbl_new,
-                                 good_of_fit.applymap(fmt_coef.format)),
-                                axis=axis)
-
-        return cls(table=tbl_new, fmt="{}")
 
     def with_dcolumn(self, delim='.', delim_index=False):
         """
@@ -153,7 +125,7 @@ class TexTable:
         tbl.columns = mask_not_delimited(tbl.columns)
 
         # if the index is delimited too, need to extract it as a column
-        if not delim_index:
+        if delim_index:
             tbl.index = mask_not_delimited(tbl.index)
 
         # mask cells with no delimiters
@@ -164,36 +136,31 @@ class TexTable:
         return res
 
     @classmethod
-    def from_model_fit_diagonal(cls, individ, joint, orient_joint="column"):
-        """
+    def diagonal_single_and_joint(cls, single, joint, orient_joint=1,
+                                  fmt="{}"):
+        """Diagonal table from many univariate and one multivariate estimation.
 
         Parameters
         ----------
-        individ
-        joint
-        orient_joint
+        single : pandas.Series
+        joint : pandas.Series
+        orient_joint : int or str
+            same as `axis` in pandas
+        fmt : str
 
         Returns
         -------
+        res : TexTable
 
         """
-        raise NotImplementedError('')
+        assert isinstance(single, pd.Series)
 
-        # create diagonal matrix
-        b_d = pd.DataFrame(
-            data=np.vstack((np.diag(individ.loc["beta", :]),
-                            individ.loc[["const"], :].values)),
-            index=list(individ.columns) + ["const"],
-            columns=individ.columns).replace(0.0, np.nan)
+        # create diagonal matrix of univariate OLS coefficients and inference
+        coef_d = pd.concat((to_diagonal(single), joint),
+                           axis=orient_joint)
 
-        # add column with the joint model
-        tbl = pd.concat((b_d, joint.rename("joint")), axis=1)
-
-        # swap columns to ensure diagonal look
-        tbl = tbl.loc[list(individ.columns) + ["const"],
-                      list(individ.columns) + ["joint"]]
-
-        res = cls(table=tbl)
+        # to TexTable
+        res = cls(coef_d, fmt=fmt)
 
         return res
 
@@ -204,7 +171,8 @@ class TexTable:
 
         Parameters
         ----------
-        kwargs
+        kwargs : dict
+            keyword arguments to `pandas.to_latex()`
 
         Returns
         -------
@@ -238,8 +206,11 @@ class TexTable:
         Parameters
         ----------
         textwidth : float
-            \textwidth argument to tabularx environment
-        kwargs
+            `\textwidth` argument to tabularx environment
+        x_column_loc : int
+            location of the 'X'-column (the one that is stretched)
+        kwargs : dict
+            keyword arguments to `pandas.to_latex()`
 
         Returns
         -------
