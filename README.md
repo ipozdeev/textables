@@ -40,11 +40,11 @@ df_r2 = pd.DataFrame(np.array([[0.5, 0.75]]),
                      index=["adj. R2"],
                      columns=["x1", "x2"])
 ```
-You can create the following table out of it, where t-stats are in parentheses below respective estimates, and all values are centered at the delimiter:
+You can create the following table out of it, where *t*-stats are in parentheses below respective estimates, and all values are centered at the delimiter:
 
 <img src="https://github.com/ipozdeev/textables/blob/master/examples/example_table.PNG" alt="example table" width="300">
 
-with th efollowing code (check section `examples/`):
+with the following code (check section `examples/`):
 ```python
 import textables as tex
 
