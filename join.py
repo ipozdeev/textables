@@ -21,7 +21,7 @@ def concat(tup, axis=0, merge_columns=True):
     if not merge_columns:
         raise NotImplementedError("Not yet implemented.")
 
-    new_tbl = pd.concat([t.table_fmt for t in tup], axis=axis)
+    new_tbl = pd.concat([t.table for t in tup], axis=axis)
 
     res = TexTable(new_tbl, fmt="{}")
 

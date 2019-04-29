@@ -1,0 +1,22 @@
+*.pyc
+.idea/
+__pycache__/
+.cache
+
+# core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+*.fff
+*.ttt
+*.gz
+
+*.pdf
