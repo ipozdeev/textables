@@ -41,7 +41,7 @@ class TestTables(unittest.TestCase):
         """Test [0, 0] element is ' ' (space)."""
         tbl = TexTable(table=self.df_coef)
 
-        self.assertEqual(tbl.table_fmt.iloc[0, 0], ' ')
+        self.assertEqual(tbl.table.iloc[0, 0], ' ')
 
     def test_to_tabular(self):
         """Test formatting to tabular."""
@@ -72,8 +72,8 @@ class TestTables(unittest.TestCase):
 
         tbl = tbl_1.intertwine(tbl_2)
 
-        self.assertEqual(tbl.table_fmt.shape[0], self.df_coef.shape[0] * 2)
-        self.assertEqual(tbl.table_fmt.iloc[3, 0][0], '(')
+        self.assertEqual(tbl.table.shape[0], self.df_coef.shape[0] * 2)
+        self.assertEqual(tbl.table.iloc[3, 0][0], '(')
 
     def test_with_dcolumn(self):
         """Test the empty cell is a multicolumn now."""

@@ -35,17 +35,17 @@ class TexTable:
         tbl = tbl.mask(mask_empty, ' ')
 
         self.mask_empty = mask_empty
-        self.table_fmt = tbl
+        self.table = tbl
 
     def __str__(self):
         """
         """
-        return self.table_fmt.__str__()
+        return self.table.__str__()
 
     def __repr__(self):
         """
         """
-        return self.table_fmt.__repr__()
+        return self.table.__repr__()
 
     def intertwine(self, other):
         """Zip table rows with rows of another table.
@@ -61,8 +61,8 @@ class TexTable:
         res : TexTable
 
         """
-        tbl_up = self.table_fmt
-        tbl_down = other.table_fmt.reindex(columns=tbl_up.columns)
+        tbl_up = self.table
+        tbl_down = other.table.reindex(columns=tbl_up.columns)
 
         # zip rows of two tables (as iteration is perfomed on rows)
         table_zipped = np.vstack(zip(tbl_up.values, tbl_down.values))
@@ -82,7 +82,7 @@ class TexTable:
     @property
     def T(self):
         """Transpose table."""
-        return TexTable(self.table_fmt.T, fmt="{}")
+        return TexTable(self.table.T, fmt="{}")
 
     def with_dcolumn(self, delim='.', delim_index=False):
         """
@@ -116,7 +116,7 @@ class TexTable:
             return res
 
         # copy, add all the multicolumns
-        tbl = mask_not_delimited(self.table_fmt.copy())
+        tbl = mask_not_delimited(self.table.copy())
 
         # columns cannot but fail to be delimited
         # columns_to_row = pd.Series(data=tbl.columns, index=tbl.columns)\
@@ -183,7 +183,7 @@ class TexTable:
         buf_old = kwargs.pop("buf", None)
 
         kwargs.update({"escape": False})
-        tex_tbl_str = self.table_fmt.to_latex(**kwargs)
+        tex_tbl_str = self.table.to_latex(**kwargs)
 
         # now, stick to the actually provided `buf`
         if buf_old is not None:
@@ -225,15 +225,15 @@ class TexTable:
         #   column, else construct a new column_format from right-ragged
         #   columns and the X-column placed in front
         column_format = kwargs.pop("column_format",
-                                   'l'*(self.table_fmt.index.nlevels +
-                                        self.table_fmt.shape[1]))
+                                   'l' * (self.table.index.nlevels +
+                                          self.table.shape[1]))
         column_format = column_format[:x_column_loc] + 'X' + \
             column_format[x_column_loc:][1:]
         kwargs.update({"column_format": column_format})
         kwargs.update({"escape": False})
 
         # move table to string to replace stuff
-        tex_tbl_str = self.table_fmt.to_latex(buf=None, **kwargs)
+        tex_tbl_str = self.table.to_latex(buf=None, **kwargs)
 
         # replace with tabularx isntead of tabular
         tex_tbl_str = re.sub(
